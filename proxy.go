@@ -21,6 +21,7 @@ import (
     "fmt"
     "log"
     "github.com/VividCortex/godaemon"
+    "runtime/debug"
 )
 
 var options struct {
@@ -29,7 +30,18 @@ var options struct {
 }
 
 func main() {
-    godaemon.MakeDaemon(&godaemon.DaemonAttr{CaptureOutput: true})
+    godaemon.MakeDaemon(&godaemon.DaemonAttr{})
+
+    start()
+}
+
+func start() {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Printf("%s", r)
+            log.Printf("%s", string(debug.Stack()))
+        }
+    }()
 
     parser := flags.NewParser(&options, flags.Default)
 
