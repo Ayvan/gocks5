@@ -1,0 +1,5 @@
+host: 0.0.0.0
+port: 1080
+user: proxy
+password: qwerty123456
+log_path: gocks5.log
