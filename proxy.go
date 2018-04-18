@@ -27,11 +27,10 @@ import (
 var options struct {
     ConfigPath string `short:"c" long:"config" default:"gocks5.yml" description:"config file path"`
     LogPath    string `short:"l" long:"log" default:"stdout" description:"log file path"`
+    Daemon     bool   `short:"d" long:"daemon" description:"start as daemon (need to set config path)"`
 }
 
 func main() {
-    godaemon.MakeDaemon(&godaemon.DaemonAttr{})
-
     start()
 }
 
@@ -48,6 +47,15 @@ func start() {
     if _, err := parser.ParseArgs(os.Args); err != nil {
         log.Printf("parse args error: %s", err)
         os.Exit(1)
+    }
+
+    if options.Daemon {
+        godaemon.MakeDaemon(&godaemon.DaemonAttr{})
+
+        if parser.FindOptionByLongName("config").IsSetDefault() {
+            // if config path not set and start as daemon - need to set path in /etc
+            options.ConfigPath = "/etc/gocks5.yml"
+        }
     }
 
     config := ProxyConfig{
