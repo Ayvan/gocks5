@@ -20,8 +20,9 @@ import (
     "github.com/armon/go-socks5"
     "fmt"
     "log"
-    "github.com/VividCortex/godaemon"
+    "github.com/ayvan/godaemon"
     "runtime/debug"
+    "path/filepath"
 )
 
 var options struct {
@@ -50,7 +51,13 @@ func start() {
     }
 
     if options.Daemon {
-        godaemon.MakeDaemon(&godaemon.DaemonAttr{})
+        wd, err := os.Getwd()
+        if err != nil {
+            log.Printf("getwd error: %s", err)
+        }
+
+        // set working dir for simple load config if --config argument not absolute path
+        godaemon.MakeDaemon(&godaemon.DaemonAttr{WorkingDir: wd})
 
         if parser.FindOptionByLongName("config").IsSetDefault() {
             // if config path not set and start as daemon - need to set path in /etc
@@ -133,6 +140,11 @@ func initLog(logPath string) error {
         return nil
     }
 
+    logPath, err := filepath.Abs(logPath)
+    if err != nil {
+        return fmt.Errorf("log file path error: %s %s", logPath, err)
+    }
+    log.SetOutput(os.Stdout)
     if logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0664); err != nil {
         return err
     } else {
